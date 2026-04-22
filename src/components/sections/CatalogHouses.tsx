@@ -141,7 +141,7 @@ const ProjectCard = ({ project }: { project: any }) => {
                   {project.price.toLocaleString('ru-RU')} <span className="text-accent">₽</span>
                 </div>
               </div>
-              <Button variant="primary" size="sm" className="rounded-xl h-11 flex-grow bg-accent hover:bg-accent/90 shadow-[0_10px_20px_rgba(255,107,53,0.3)] text-xs font-black uppercase tracking-widest">
+              <Button variant="primary" size="sm" className="rounded-xl h-11 flex-grow bg-accent hover:bg-accent/90 shadow-[0_10px_20px_rgba(255,107,53,0.3)] text-xs font-black uppercase tracking-widest whitespace-nowrap">
                 Подробнее
               </Button>
             </div>
@@ -181,7 +181,7 @@ const ProjectCard = ({ project }: { project: any }) => {
               <span className="text-white/40 text-sm font-bold uppercase tracking-widest">Стоимость:</span>
               <span className="text-2xl font-black text-white">{project.price.toLocaleString('ru-RU')} ₽</span>
             </div>
-            <Button variant="primary" size="lg" className="w-full rounded-[24px] h-14 bg-accent hover:bg-accent/90 shadow-[0_15px_30px_rgba(255,107,53,0.3)] font-black uppercase tracking-widest text-sm">
+            <Button variant="primary" size="lg" className="w-full rounded-[24px] h-14 bg-accent hover:bg-accent/90 shadow-[0_15px_30px_rgba(255,107,53,0.3)] font-black uppercase tracking-widest text-sm whitespace-nowrap">
               Получить расчет
             </Button>
           </div>

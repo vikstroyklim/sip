@@ -37,9 +37,9 @@ export const Hero = () => {
       </div>
 
       <div className="container relative z-10 px-4 mx-auto pt-20">
-        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-8">
+        <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Left Content */}
-          <div className="w-full lg:w-3/5 text-center lg:text-left">
+          <div className="w-full lg:w-1/2 text-center lg:text-left relative z-20">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -50,20 +50,20 @@ export const Hero = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
               </span>
-              Завод СИП-панелей №1
+              Завод СТК-панелей №1
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl md:text-6xl lg:text-7xl xl:text-[80px] font-black text-white leading-[0.95] tracking-tight mb-8"
+              className="font-black text-white leading-[0.9] tracking-tight mb-8 text-balance"
             >
-              ТЕХНОЛОГИИ <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-orange-400 to-accent bg-[length:200%_auto] animate-gradient-x">
-                БЫСТРОГО
-              </span> <br />
-              СТРОИТЕЛЬСТВА
+              <span className="text-3xl sm:text-4xl lg:text-5xl block mb-2 text-white/90">ИННОВАЦИОННЫЕ</span>
+              <span className="text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] text-transparent bg-clip-text bg-gradient-to-r from-accent via-orange-400 to-accent bg-[length:200%_auto] animate-gradient-x whitespace-nowrap block mb-2">
+                СТК-ПАНЕЛИ
+              </span>
+              <span className="text-3xl sm:text-4xl lg:text-5xl block text-white/90">ДЛЯ ВАШЕГО ДОМА</span>
             </motion.h1>
 
             <motion.p
@@ -72,7 +72,7 @@ export const Hero = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-lg md:text-xl text-white/50 mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed"
             >
-              Производим премиальные СИП-панели ОСП и ЦСП на автоматизированной линии. Идеальная геометрия, высший класс экологии и лучшая цена от производителя.
+              Производим усиленные СТК-панели с ЦСП обшивкой на автоматизированной линии. Максимальная прочность, огнестойкость и шумоизоляция по цене производителя.
             </motion.p>
 
             <motion.div
@@ -81,8 +81,8 @@ export const Hero = () => {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start"
             >
-              <Button variant="primary" size="lg" className="h-16 px-12 rounded-full text-lg font-bold group overflow-hidden relative">
-                <span className="relative z-10 flex items-center gap-2">
+              <Button variant="primary" size="lg" className="h-16 px-8 sm:px-10 rounded-full text-base sm:text-lg font-bold group overflow-hidden relative min-w-[220px]">
+                <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
                   Рассчитать проект
                   <ChevronDown className="group-hover:translate-y-1 transition-transform" />
                 </span>
@@ -93,17 +93,17 @@ export const Hero = () => {
                   transition={{ duration: 0.5 }}
                 />
               </Button>
-              <button className="h-16 px-8 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all flex items-center gap-4 group">
-                <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+              <button className="h-16 px-8 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all flex items-center justify-center gap-4 group min-w-[220px]">
+                <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white group-hover:scale-110 transition-transform shrink-0">
                   <Play size={16} fill="currentColor" />
                 </div>
-                <span className="text-white font-bold text-sm uppercase tracking-wider">О производстве</span>
+                <span className="text-white font-bold text-sm uppercase tracking-wider whitespace-nowrap">О производстве</span>
               </button>
             </motion.div>
           </div>
 
           {/* Right Content - Visual Feature */}
-          <div className="w-full lg:w-2/5 relative perspective-2000">
+          <div className="w-full lg:w-1/2 relative perspective-2000">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotateY: 20, rotateX: 10 }}
               animate={{ opacity: 1, scale: 1, rotateY: -15, rotateX: 5 }}

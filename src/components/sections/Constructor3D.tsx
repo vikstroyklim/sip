@@ -8,114 +8,358 @@ import {
   Float, 
   PresentationControls,
   Environment,
-  useTexture,
   Html
 } from "@react-three/drei";
 import * as THREE from "three";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// Текстуры для разных материалов
-const TEXTURES = {
-  osb: "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?q=80&w=1000&auto=format&fit=crop", 
-  eps: "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=1000&auto=format&fit=crop",
-  csp: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1000&auto=format&fit=crop",
-  pir: "https://images.unsplash.com/photo-1590069230002-70cc8341053a?q=80&w=1000&auto=format&fit=crop",
-  sml: "https://images.unsplash.com/photo-1517055727180-d15bb74f7be4?q=80&w=1000&auto=format&fit=crop"
+type TextureKind = "csp" | "eps" | "pir" | "wool";
+
+const hashString = (value: string) => {
+  let h = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+};
+
+const makeRng = (seed: number) => {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(1664525, s) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+};
+
+const makeCanvas = (size: number) => {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  return c;
+};
+
+const fill = (ctx: CanvasRenderingContext2D, color: string, size: number) => {
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, size, size);
+};
+
+const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+
+const makeTextureFromCanvas = (canvas: HTMLCanvasElement, colorSpace: THREE.ColorSpace) => {
+  const t = new THREE.CanvasTexture(canvas);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 16;
+  t.colorSpace = colorSpace;
+  t.needsUpdate = true;
+  return t;
+};
+
+const generateCsp = (size: number, seedKey: string) => {
+  const seed = hashString(seedKey);
+  const rng = makeRng(seed);
+  const colorCanvas = makeCanvas(size);
+  const bumpCanvas = makeCanvas(size);
+  const cCtx = colorCanvas.getContext("2d")!;
+  const bCtx = bumpCanvas.getContext("2d")!;
+
+  fill(cCtx, "#7f7f7f", size);
+  fill(bCtx, "#808080", size);
+
+  for (let i = 0; i < 2600; i += 1) {
+    const x = rng() * size;
+    const y = rng() * size;
+    const w = 1 + rng() * 6;
+    const h = 1 + rng() * 10;
+    const rot = (rng() - 0.5) * 0.6;
+    const d = (rng() - 0.5) * 70;
+    const g = clamp(120 + d, 70, 200);
+    const a = 0.12 + rng() * 0.22;
+
+    cCtx.save();
+    cCtx.translate(x, y);
+    cCtx.rotate(rot);
+    cCtx.fillStyle = `rgba(${g},${g},${g},${a})`;
+    cCtx.fillRect(-w / 2, -h / 2, w, h);
+    cCtx.restore();
+
+    const hg = clamp(120 + d, 60, 200);
+    bCtx.save();
+    bCtx.translate(x, y);
+    bCtx.rotate(rot);
+    bCtx.fillStyle = `rgba(${hg},${hg},${hg},${0.18 + rng() * 0.18})`;
+    bCtx.fillRect(-w / 2, -h / 2, w, h);
+    bCtx.restore();
+  }
+
+  return {
+    color: makeTextureFromCanvas(colorCanvas, THREE.SRGBColorSpace),
+    bump: makeTextureFromCanvas(bumpCanvas, THREE.NoColorSpace)
+  };
+};
+
+const generateEps = (size: number, seedKey: string) => {
+  const seed = hashString(seedKey);
+  const rng = makeRng(seed);
+  const colorCanvas = makeCanvas(size);
+  const bumpCanvas = makeCanvas(size);
+  const cCtx = colorCanvas.getContext("2d")!;
+  const bCtx = bumpCanvas.getContext("2d")!;
+
+  fill(cCtx, "#f6f6f6", size);
+  fill(bCtx, "#808080", size);
+
+  for (let i = 0; i < 750; i += 1) {
+    const x = rng() * size;
+    const y = rng() * size;
+    const r = 3 + rng() * 12;
+
+    cCtx.beginPath();
+    cCtx.arc(x, y, r, 0, Math.PI * 2);
+    cCtx.fillStyle = `rgba(255,255,255,${0.65})`;
+    cCtx.fill();
+    cCtx.lineWidth = 1 + rng() * 1.5;
+    cCtx.strokeStyle = `rgba(210,210,210,${0.35})`;
+    cCtx.stroke();
+
+    const grad = bCtx.createRadialGradient(x - r * 0.2, y - r * 0.2, r * 0.2, x, y, r);
+    grad.addColorStop(0, "rgba(190,190,190,0.9)");
+    grad.addColorStop(1, "rgba(90,90,90,0.9)");
+    bCtx.beginPath();
+    bCtx.arc(x, y, r, 0, Math.PI * 2);
+    bCtx.fillStyle = grad;
+    bCtx.fill();
+  }
+
+  return {
+    color: makeTextureFromCanvas(colorCanvas, THREE.SRGBColorSpace),
+    bump: makeTextureFromCanvas(bumpCanvas, THREE.NoColorSpace)
+  };
+};
+
+const generatePir = (size: number, seedKey: string) => {
+  const seed = hashString(seedKey);
+  const rng = makeRng(seed);
+  const colorCanvas = makeCanvas(size);
+  const bumpCanvas = makeCanvas(size);
+  const cCtx = colorCanvas.getContext("2d")!;
+  const bCtx = bumpCanvas.getContext("2d")!;
+
+  fill(cCtx, "#e7e0b2", size);
+  fill(bCtx, "#808080", size);
+
+  for (let i = 0; i < 2400; i += 1) {
+    const x = rng() * size;
+    const y = rng() * size;
+    const r = 0.6 + rng() * 2.2;
+    const shade = clamp(210 + (rng() - 0.5) * 30, 160, 240);
+
+    cCtx.beginPath();
+    cCtx.arc(x, y, r, 0, Math.PI * 2);
+    cCtx.fillStyle = `rgba(${shade},${shade},${clamp(shade - 30, 140, 230)},${0.22})`;
+    cCtx.fill();
+
+    const g = clamp(130 + (rng() - 0.5) * 60, 80, 180);
+    bCtx.beginPath();
+    bCtx.arc(x, y, r, 0, Math.PI * 2);
+    bCtx.fillStyle = `rgba(${g},${g},${g},${0.25})`;
+    bCtx.fill();
+  }
+
+  return {
+    color: makeTextureFromCanvas(colorCanvas, THREE.SRGBColorSpace),
+    bump: makeTextureFromCanvas(bumpCanvas, THREE.NoColorSpace)
+  };
+};
+
+const generateWool = (size: number, seedKey: string) => {
+  const seed = hashString(seedKey);
+  const rng = makeRng(seed);
+  const colorCanvas = makeCanvas(size);
+  const bumpCanvas = makeCanvas(size);
+  const cCtx = colorCanvas.getContext("2d")!;
+  const bCtx = bumpCanvas.getContext("2d")!;
+
+  fill(cCtx, "#8e845f", size);
+  fill(bCtx, "#808080", size);
+
+  for (let i = 0; i < 1800; i += 1) {
+    const x = rng() * size;
+    const y = rng() * size;
+    const len = 8 + rng() * 38;
+    const ang = (rng() - 0.5) * Math.PI;
+    const w = 0.6 + rng() * 1.8;
+    const c = clamp(160 + (rng() - 0.5) * 60, 90, 220);
+
+    cCtx.lineWidth = w;
+    cCtx.strokeStyle = `rgba(${c},${c},${clamp(c - 30, 70, 200)},${0.25})`;
+    cCtx.beginPath();
+    cCtx.moveTo(x, y);
+    cCtx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    cCtx.stroke();
+
+    const g = clamp(120 + (rng() - 0.5) * 80, 60, 200);
+    bCtx.lineWidth = w * 1.2;
+    bCtx.strokeStyle = `rgba(${g},${g},${g},${0.25})`;
+    bCtx.beginPath();
+    bCtx.moveTo(x, y);
+    bCtx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    bCtx.stroke();
+  }
+
+  return {
+    color: makeTextureFromCanvas(colorCanvas, THREE.SRGBColorSpace),
+    bump: makeTextureFromCanvas(bumpCanvas, THREE.NoColorSpace)
+  };
+};
+
+const makeTextureSet = (kind: TextureKind, size: number, seedKey: string) => {
+  if (kind === "csp") return generateCsp(size, seedKey);
+  if (kind === "eps") return generateEps(size, seedKey);
+  if (kind === "pir") return generatePir(size, seedKey);
+  return generateWool(size, seedKey);
+};
+
+type TextureSet = {
+  color: THREE.Texture;
+  bump: THREE.Texture;
+};
+
+const useGeneratedTextureSet = (kind: TextureKind, size: number, seedKey: string) => {
+  const [set, setSet] = useState<TextureSet | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const next = makeTextureSet(kind, size, seedKey);
+    setSet(next);
+    return () => {
+      next.color.dispose();
+      next.bump.dispose();
+    };
+  }, [kind, seedKey, size]);
+
+  return set;
+};
+
+type MaterialConfig = {
+  id: string;
+  name: string;
+  facingName: string;
+  insulationName: string;
+  facingColor: string;
+  insulationColor: string;
+  facingKind: TextureKind;
+  insulationKind: TextureKind;
+  facingRepeat: [number, number];
+  insulationRepeat: [number, number];
+  roughness: number;
+  bumpFacing: number;
+  bumpInsulation: number;
+  thickness: number;
+  facingT: number;
+  insulationT: number;
+  description: string;
 };
 
 const MATERIAL_TYPES = {
   standard: {
     id: "standard",
-    name: "ОСП + ППС",
-    facingName: "ОСП-3 12мм",
-    insulationName: "Пенополистирол",
-    facingColor: "#e3b67f",
-    insulationColor: "#ffffff",
-    facingTex: TEXTURES.osb,
-    insulationTex: TEXTURES.eps,
-    facingRepeat: [1.5, 3],
-    insulationRepeat: [4, 4],
-    roughness: 0.9,
-    thickness: 174,
-    facingT: 12,
-    insulationT: 150,
-    description: "Стандартная СИП-панель для стен и перекрытий.",
-  },
-  csp: {
-    id: "csp",
     name: "ЦСП + ППС",
     facingName: "ЦСП 12мм",
     insulationName: "Пенополистирол",
-    facingColor: "#999999",
+    facingColor: "#7c7c7c",
     insulationColor: "#ffffff",
-    facingTex: TEXTURES.csp,
-    insulationTex: TEXTURES.eps,
-    facingRepeat: [1, 1],
-    insulationRepeat: [4, 4],
-    roughness: 0.8,
+    facingKind: "csp",
+    insulationKind: "eps",
+    facingRepeat: [1, 2],
+    insulationRepeat: [4, 8],
+    roughness: 0.9,
+    bumpFacing: 0.004,
+    bumpInsulation: 0.01,
     thickness: 174,
     facingT: 12,
     insulationT: 150,
-    description: "Огнестойкая панель с цементно-стружечной плитой.",
+    description: "СТК‑панель с ЦСП. Баланс прочности, влагостойкости и цены.",
+  },
+  csp: {
+    id: "csp",
+    name: "ЦСП + Минплита",
+    facingName: "ЦСП 12мм",
+    insulationName: "Каменная плита",
+    facingColor: "#7c7c7c",
+    insulationColor: "#8b8b7a",
+    facingKind: "csp",
+    insulationKind: "wool",
+    facingRepeat: [1, 2],
+    insulationRepeat: [2.5, 5],
+    roughness: 0.95,
+    bumpFacing: 0.004,
+    bumpInsulation: 0.018,
+    thickness: 174,
+    facingT: 12,
+    insulationT: 150,
+    description: "ЦСП + минеральная плита для максимальной пожаробезопасности и звукоизоляции.",
   },
   pir: {
     id: "pir",
-    name: "ОСП + PIR",
-    facingName: "ОСП-3 12мм",
+    name: "ЦСП + PIR",
+    facingName: "ЦСП 12мм",
     insulationName: "PIR плита",
-    facingColor: "#e3b67f",
-    insulationColor: "#fff89e",
-    facingTex: TEXTURES.osb,
-    insulationTex: TEXTURES.pir,
-    facingRepeat: [1.5, 3],
-    insulationRepeat: [2, 2],
-    roughness: 0.9,
+    facingColor: "#7c7c7c",
+    insulationColor: "#e6e6ad",
+    facingKind: "csp",
+    insulationKind: "pir",
+    facingRepeat: [1, 2],
+    insulationRepeat: [2, 4],
+    roughness: 0.85,
+    bumpFacing: 0.004,
+    bumpInsulation: 0.008,
     thickness: 124,
     facingT: 12,
     insulationT: 100,
-    description: "Максимальная энергоэффективность с PIR-утеплителем.",
+    description: "ЦСП + PIR для максимальной энергоэффективности и долговечности.",
   },
   sml: {
     id: "sml",
-    name: "СМЛ + ППС",
-    facingName: "СМЛ 10мм",
+    name: "ЦСП + ППС (тонкая)",
+    facingName: "ЦСП 10мм",
     insulationName: "Пенополистирол",
-    facingColor: "#ffffff",
+    facingColor: "#8c8c8c",
     insulationColor: "#ffffff",
-    facingTex: TEXTURES.sml,
-    insulationTex: TEXTURES.eps,
-    facingRepeat: [1, 1],
-    insulationRepeat: [4, 4],
-    roughness: 0.5,
+    facingKind: "csp",
+    insulationKind: "eps",
+    facingRepeat: [1, 2],
+    insulationRepeat: [4, 8],
+    roughness: 0.9,
+    bumpFacing: 0.0035,
+    bumpInsulation: 0.01,
     thickness: 170,
     facingT: 10,
     insulationT: 150,
-    description: "Экологичная влагостойкая панель со стекломагниевым листом.",
+    description: "Легкая версия СТК‑панели для внутренних перегородок.",
   }
-};
+} satisfies Record<string, MaterialConfig>;
 
-const SIPPanelModel = ({ exploded, config }: { exploded: boolean; config: typeof MATERIAL_TYPES.standard }) => {
+const SIPPanelModel = ({ exploded, config }: { exploded: boolean; config: MaterialConfig }) => {
   const meshFront = useRef<THREE.Mesh>(null);
   const meshBack = useRef<THREE.Mesh>(null);
   const labelsRef = useRef<THREE.Group>(null);
   
-  const textures = useTexture([config.facingTex, config.insulationTex]);
-  const facingMap = textures[0];
-  const insulationMap = textures[1];
+  const facing = useGeneratedTextureSet(config.facingKind, 1024, `${config.id}-facing`);
+  const insulation = useGeneratedTextureSet(config.insulationKind, 1024, `${config.id}-insulation`);
+  const facingMap = facing?.color;
+  const facingBumpMap = facing?.bump;
+  const insulationMap = insulation?.color;
+  const insulationBumpMap = insulation?.bump;
 
   useEffect(() => {
-    if (facingMap) {
-      facingMap.wrapS = facingMap.wrapT = THREE.RepeatWrapping;
-      facingMap.repeat.set(config.facingRepeat[0], config.facingRepeat[1]);
-      facingMap.anisotropy = 16;
-    }
-    if (insulationMap) {
-      insulationMap.wrapS = insulationMap.wrapT = THREE.RepeatWrapping;
-      insulationMap.repeat.set(config.insulationRepeat[0], config.insulationRepeat[1]);
-      insulationMap.anisotropy = 16;
-    }
-  }, [facingMap, insulationMap, config]);
+    if (!facingMap || !facingBumpMap || !insulationMap || !insulationBumpMap) return;
+    facingMap.repeat.set(config.facingRepeat[0], config.facingRepeat[1]);
+    facingBumpMap.repeat.set(config.facingRepeat[0], config.facingRepeat[1]);
+    insulationMap.repeat.set(config.insulationRepeat[0], config.insulationRepeat[1]);
+    insulationBumpMap.repeat.set(config.insulationRepeat[0], config.insulationRepeat[1]);
+  }, [config.facingRepeat, config.insulationRepeat, facingMap, facingBumpMap, insulationMap, insulationBumpMap]);
 
   const scale = 0.0006;
   const w = 1250 * scale;
@@ -151,19 +395,39 @@ const SIPPanelModel = ({ exploded, config }: { exploded: boolean; config: typeof
       {/* Front */}
       <mesh ref={meshFront} position={[0, 0, initialOffset]} castShadow receiveShadow>
         <boxGeometry args={[w, h, osbT]} />
-        <meshStandardMaterial map={facingMap} color={config.facingColor} roughness={config.roughness} metalness={0.1} />
+        <meshStandardMaterial 
+          map={facingMap} 
+          color={config.facingColor} 
+          roughness={config.roughness} 
+          metalness={0.1}
+          bumpMap={facingBumpMap}
+          bumpScale={config.bumpFacing}
+        />
       </mesh>
 
       {/* Middle */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[w - 0.005, h - 0.005, foamT]} />
-        <meshStandardMaterial map={insulationMap} color={config.insulationColor} roughness={0.9} />
+        <meshStandardMaterial 
+          map={insulationMap} 
+          color={config.insulationColor} 
+          roughness={1}
+          bumpMap={insulationBumpMap}
+          bumpScale={config.bumpInsulation}
+        />
       </mesh>
 
       {/* Back */}
       <mesh ref={meshBack} position={[0, 0, -initialOffset]} castShadow receiveShadow>
         <boxGeometry args={[w, h, osbT]} />
-        <meshStandardMaterial map={facingMap} color={config.facingColor} roughness={config.roughness} metalness={0.1} />
+        <meshStandardMaterial 
+          map={facingMap} 
+          color={config.facingColor} 
+          roughness={config.roughness} 
+          metalness={0.1}
+          bumpMap={facingBumpMap}
+          bumpScale={config.bumpFacing}
+        />
       </mesh>
 
       {/* Labels */}
@@ -337,7 +601,7 @@ export const Constructor3D = () => {
                 </div>
                 <div className="col-span-2 pt-4 border-t border-white/10">
                   <p className="text-white/60 text-sm leading-relaxed italic">
-                    "{material.description}"
+                    «{material.description}»
                   </p>
                 </div>
               </div>

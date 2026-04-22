@@ -16,6 +16,7 @@ export const Header = () => {
   });
 
   const navLinks = [
+    { name: "СТК-панели", href: "#stk" },
     { name: "О технологии", href: "#tech" },
     { name: "Каталог", href: "#catalog" },
     { name: "Калькулятор", href: "#calculator" },
@@ -42,7 +43,7 @@ export const Header = () => {
             </div>
           </div>
           <span className="text-xl font-black font-display tracking-tight text-white uppercase">
-            SIP <span className="text-accent">PREMIUM</span>
+            STK <span className="text-accent">PREMIUM</span>
           </span>
         </div>
 
@@ -61,7 +62,7 @@ export const Header = () => {
 
         {/* CTA */}
         <div className="hidden md:block">
-          <Button variant="primary" size="sm" className="h-10 px-6 rounded-full font-bold text-xs uppercase tracking-widest bg-accent hover:bg-accent/90 shadow-[0_0_20px_rgba(255,107,53,0.3)]">
+          <Button variant="primary" size="sm" className="h-10 px-6 rounded-full font-bold text-xs uppercase tracking-widest bg-accent hover:bg-accent/90 shadow-[0_0_20px_rgba(255,107,53,0.3)] whitespace-nowrap">
             Консультация
           </Button>
         </div>

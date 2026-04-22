@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Hero } from "@/components/sections/Hero";
 import { Header } from "@/components/sections/Header";
 import { Features } from "@/components/sections/Features";
+import { STKInnovation } from "@/components/sections/STKInnovation";
 const Constructor3D = dynamic(() => import("@/components/sections/Constructor3D").then(mod => mod.Constructor3D), { 
   ssr: false,
   loading: () => <div className="h-[600px] bg-[#050A18] flex items-center justify-center text-white/20 uppercase font-black tracking-widest">Загрузка 3D-модуля...</div>
@@ -34,10 +35,11 @@ export default function Home() {
 
       <Header />
       <Hero />
+      <STKInnovation />
+      <Catalog />
       <Features />
       <Constructor3D />
       <CatalogHouses />
-      <Catalog />
       <Calculator />
       <Process />
       <SocialProof />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Check, ChevronRight, ChevronLeft, Home, User, Settings, Send } from "lucide-react";
@@ -24,6 +24,20 @@ export const Calculator = () => {
     name: "",
     phone: "",
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.sessionStorage.getItem("stk_order");
+    if (!raw) return;
+    window.sessionStorage.removeItem("stk_order");
+    try {
+      const parsed = JSON.parse(raw) as { panelType?: string };
+      if (parsed.panelType) {
+        setFormData((prev) => ({ ...prev, panelType: parsed.panelType! }));
+        setCurrentStep(2);
+      }
+    } catch {}
+  }, []);
 
   const nextStep = () => {
     if (currentStep < 4) setCurrentStep(currentStep + 1);

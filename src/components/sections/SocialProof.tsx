@@ -86,7 +86,7 @@ export const SocialProof = () => {
                       <Star key={i} size={14} className="fill-accent text-accent" />
                     ))}
                   </div>
-                  <p className="text-white/60 text-lg mb-8 leading-relaxed font-medium">"{t.text}"</p>
+                  <p className="text-white/60 text-lg mb-8 leading-relaxed font-medium">«{t.text}»</p>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-black">
                       {t.name[0]}
